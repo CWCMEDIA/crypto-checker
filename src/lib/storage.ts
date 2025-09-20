@@ -1,4 +1,4 @@
-import { TrackedToken } from '@/types/crypto';
+import { TrackedToken, TokenData } from '@/types/crypto';
 import { supabase, SharedToken } from './supabase';
 
 const STORAGE_KEY = 'crypto-checker-tracked-tokens';
@@ -39,7 +39,7 @@ export class TokenStorage {
         contractAddress: token.contract_address,
         addedAt: token.added_at,
         addedBy: token.added_by,
-        tokenData: token.token_data
+        tokenData: token.token_data as TokenData | undefined
       })) || [];
     } catch (error) {
       console.error('Error fetching tokens:', error);

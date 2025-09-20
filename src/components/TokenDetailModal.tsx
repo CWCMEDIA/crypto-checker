@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TokenData } from '@/types/crypto';
-import { X, ExternalLink, BarChart3, Volume2, TrendingUp, TrendingDown, Globe, Shield } from 'lucide-react';
+import { X, ExternalLink, BarChart3, Volume2, TrendingUp, TrendingDown, Globe, Shield, Brain, Target, AlertTriangle, RefreshCw } from 'lucide-react';
+import { CryptoAPI } from '@/lib/crypto-api';
 
 interface TokenDetailModalProps {
   token: TokenData | null;
@@ -12,6 +13,47 @@ interface TokenDetailModalProps {
 
 export default function TokenDetailModal({ token, isOpen, onClose }: TokenDetailModalProps) {
   const [chartType, setChartType] = useState<'coingecko' | 'dexscreener' | 'tradingview'>('dexscreener');
+  const [prediction, setPrediction] = useState<TokenData['prediction']>(undefined);
+  const [isLoadingPrediction, setIsLoadingPrediction] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+
+  const loadPrediction = useCallback(async () => {
+    if (!token?.contract_address) return;
+    
+    setIsLoadingPrediction(true);
+    try {
+      const api = CryptoAPI.getInstance();
+      const predictionResult = await api.generatePrediction(token.contract_address);
+      setPrediction(predictionResult || undefined);
+      setLastUpdated(new Date());
+    } catch (error) {
+      console.error('Error loading prediction:', error);
+    } finally {
+      setIsLoadingPrediction(false);
+    }
+  }, [token?.contract_address]);
+
+  // Load prediction when modal opens
+  useEffect(() => {
+    if (isOpen && token?.contract_address) {
+      // Clear previous prediction and load new one
+      setPrediction(undefined);
+      loadPrediction();
+    }
+  }, [isOpen, token?.contract_address, loadPrediction]);
+
+  // Auto-refresh prediction every 30 seconds when modal is open
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const interval = setInterval(() => {
+      if (token?.contract_address) {
+        loadPrediction();
+      }
+    }, 30000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, [isOpen, token?.contract_address, loadPrediction]);
   
   if (!isOpen || !token) return null;
 
@@ -171,6 +213,137 @@ export default function TokenDetailModal({ token, isOpen, onClose }: TokenDetail
                     {formatVolume(token.total_volume)}
                   </div>
                 </div>
+              </div>
+
+              {/* AI Prediction Section */}
+              <div className="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center space-x-2">
+                    <Brain className="w-5 h-5 text-blue-600 dark:text-blue-400" />
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      AI Price Prediction
+                    </h3>
+                    {isLoadingPrediction && (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {lastUpdated && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Updated: {lastUpdated.toLocaleTimeString()}
+                      </span>
+                    )}
+                    <button
+                      onClick={loadPrediction}
+                      disabled={isLoadingPrediction}
+                      className="p-1 text-gray-500 hover:text-blue-600 dark:text-gray-400 dark:hover:text-blue-400 transition-colors disabled:opacity-50"
+                      title="Refresh prediction"
+                    >
+                      <RefreshCw className={`w-4 h-4 ${isLoadingPrediction ? 'animate-spin' : ''}`} />
+                    </button>
+                  </div>
+                </div>
+
+                {isLoadingPrediction ? (
+                  <div className="text-center py-4">
+                    <div className="text-gray-500 dark:text-gray-400">
+                      Analyzing market data...
+                    </div>
+                  </div>
+                ) : prediction ? (
+                  <div className="space-y-3">
+                    {/* Prediction Score */}
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600 dark:text-gray-400">Prediction Score</span>
+                      <div className="flex items-center space-x-2">
+                        <div className="w-20 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-500 ${
+                              prediction.score >= 70 ? 'bg-green-500' :
+                              prediction.score >= 40 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}
+                            style={{ width: `${prediction.score}%` }}
+                          ></div>
+                        </div>
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
+                          {prediction.score}/100
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Direction and Confidence */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2">
+                        {prediction.direction === 'bullish' ? (
+                          <TrendingUp className="w-4 h-4 text-green-500" />
+                        ) : prediction.direction === 'bearish' ? (
+                          <TrendingDown className="w-4 h-4 text-red-500" />
+                        ) : (
+                          <AlertTriangle className="w-4 h-4 text-yellow-500" />
+                        )}
+                        <span className="text-sm font-medium text-gray-900 dark:text-white capitalize">
+                          {prediction.direction}
+                        </span>
+                      </div>
+                      <span className={`text-xs px-2 py-1 rounded-full ${
+                        prediction.confidence === 'high' ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400' :
+                        prediction.confidence === 'medium' ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400' :
+                        'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-400'
+                      }`}>
+                        {prediction.confidence} confidence
+                      </span>
+                    </div>
+
+                    {/* Price Targets */}
+                    {prediction.priceTarget && (
+                      <div className="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700">
+                        <div className="flex items-center space-x-2 mb-2">
+                          <Target className="w-4 h-4 text-blue-500" />
+                          <span className="text-sm font-medium text-gray-900 dark:text-white">Price Targets</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Short Term</div>
+                            <div className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                              {formatPrice(prediction.priceTarget.short)}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {prediction.direction === 'bullish' ? '↗' : prediction.direction === 'bearish' ? '↘' : '↔'}
+                            </div>
+                          </div>
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 dark:text-gray-400 mb-1">Medium Term</div>
+                            <div className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                              {formatPrice(prediction.priceTarget.medium)}
+                            </div>
+                            <div className="text-xs text-gray-500 dark:text-gray-400">
+                              {prediction.direction === 'bullish' ? '↗' : prediction.direction === 'bearish' ? '↘' : '↔'}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Reasoning */}
+                    <div className="space-y-1">
+                      <span className="text-xs text-gray-600 dark:text-gray-400">Key Signals:</span>
+                      <div className="text-xs text-gray-700 dark:text-gray-300 space-y-1">
+                        {prediction.reasoning.slice(0, 3).map((reason, index) => (
+                          <div key={index} className="flex items-start space-x-1">
+                            <span className="text-blue-500">•</span>
+                            <span>{reason}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="text-gray-500 dark:text-gray-400 text-sm">
+                      Unable to generate prediction
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Contract Address */}

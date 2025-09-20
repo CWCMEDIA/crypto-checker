@@ -1,3 +1,5 @@
+import { PredictionResult } from '@/lib/technical-analysis';
+
 export interface TokenData {
   id: string;
   symbol: string;
@@ -13,6 +15,8 @@ export interface TokenData {
   dexscreener_pair_address?: string;
   dexscreener_chain?: string;
   dexscreener_url?: string;
+  // Prediction data
+  prediction?: PredictionResult;
 }
 
 export interface TrackedToken {
