@@ -14,7 +14,7 @@ export interface SharedToken {
   contract_address: string;
   added_by: string;
   added_at: string;
-  token_data?: any;
+  token_data?: unknown;
   last_updated?: string;
 }
 

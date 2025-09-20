@@ -117,7 +117,7 @@ export class TokenStorage {
     }
   }
 
-  static async updateTokenData(contractAddress: string, tokenData: any): Promise<boolean> {
+  static async updateTokenData(contractAddress: string, tokenData: unknown): Promise<boolean> {
     if (!supabase) {
       console.log('Supabase not configured, skipping update');
       return false;

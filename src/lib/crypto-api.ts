@@ -36,7 +36,7 @@ export class CryptoAPI {
       }
     }
 
-    let lastError: any = null;
+    let lastError: Error | null = null;
 
     // Try CoinGecko first
     for (const detectedPlatform of platformsToTry) {
@@ -80,12 +80,12 @@ export class CryptoAPI {
         this.cache.set(cacheKey, { data: tokenData, timestamp: Date.now() });
 
         return { data: [tokenData] };
-      } catch (error: any) {
-        lastError = error;
-        console.log(`CoinGecko failed for ${detectedPlatform}:`, error.response?.status);
+      } catch (error: unknown) {
+        lastError = error as Error;
+        console.log(`CoinGecko failed for ${detectedPlatform}:`, (error as any).response?.status);
         
         // If it's not a 404, don't try other platforms
-        if (error.response?.status !== 404) {
+        if ((error as any).response?.status !== 404) {
           break;
         }
       }
@@ -105,17 +105,17 @@ export class CryptoAPI {
     // All platforms failed
     console.error('Error fetching token data from all platforms:', lastError);
     
-    if (lastError?.response?.status === 404) {
+    if ((lastError as any)?.response?.status === 404) {
       return { 
         data: [], 
         error: `Token not found on CoinGecko or DexScreener. This token may not be listed or the address might be incorrect.` 
       };
-    } else if (lastError?.response?.status === 429) {
+    } else if ((lastError as any)?.response?.status === 429) {
       return { 
         data: [], 
         error: 'Rate limit exceeded. Please try again in a moment.' 
       };
-    } else if (lastError?.code === 'ENOTFOUND' || lastError?.code === 'ECONNREFUSED') {
+    } else if ((lastError as any)?.code === 'ENOTFOUND' || (lastError as any)?.code === 'ECONNREFUSED') {
       return { 
         data: [], 
         error: 'Network error. Please check your internet connection.' 
@@ -167,7 +167,7 @@ export class CryptoAPI {
       this.cache.set(cacheKey, { data: tokenData, timestamp: Date.now() });
 
       return { data: [tokenData] };
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('DexScreener API error:', error);
       return { 
         data: [], 

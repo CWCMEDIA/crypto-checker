@@ -1,8 +1,7 @@
 'use client';
 
 import { TokenData } from '@/types/crypto';
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, Volume2, Trash2 } from 'lucide-react';
-import { TokenStorage } from '@/lib/storage';
+import { TrendingUp, TrendingDown, BarChart3, Volume2, Trash2 } from 'lucide-react';
 
 interface TokenCardProps {
   token: TokenData;
@@ -38,6 +37,7 @@ export default function TokenCard({ token, onRemove, addedBy }: TokenCardProps) 
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={token.image}
             alt={token.name}

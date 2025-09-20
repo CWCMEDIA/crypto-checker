@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { TrackedToken, TokenData } from '@/types/crypto';
 import { CryptoAPI } from '@/lib/crypto-api';
 import { TokenStorage } from '@/lib/storage';
@@ -19,7 +19,7 @@ export default function TokenDashboard() {
     setTrackedTokens(tokens);
   };
 
-  const fetchTokenData = async () => {
+  const fetchTokenData = useCallback(async () => {
     if (trackedTokens.length === 0) return;
 
     setIsLoading(true);
@@ -35,12 +35,12 @@ export default function TokenDashboard() {
       } else {
         setTokenData(result.data);
       }
-    } catch (err) {
+    } catch {
       setError('Failed to fetch token data');
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [trackedTokens]);
 
   const handleTokenRemoved = async (contractAddress: string) => {
     await TokenStorage.removeTrackedToken(contractAddress);
@@ -64,7 +64,7 @@ export default function TokenDashboard() {
     } else {
       setTokenData([]);
     }
-  }, [trackedTokens]);
+  }, [trackedTokens, fetchTokenData]);
 
   // Real-time updates
   useEffect(() => {
@@ -151,7 +151,7 @@ export default function TokenDashboard() {
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {tokenData.map((token, index) => {
+          {tokenData.map((token) => {
             const trackedToken = trackedTokens.find(t => 
               t.contractAddress.toLowerCase() === token.contract_address?.toLowerCase()
             );

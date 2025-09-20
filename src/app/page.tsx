@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import TokenInput from '@/components/TokenInput';
 import TokenDashboard from '@/components/TokenDashboard';
-import { Coins, TrendingUp } from 'lucide-react';
+import { Coins } from 'lucide-react';
 
 export default function Home() {
   const [refreshKey, setRefreshKey] = useState(0);

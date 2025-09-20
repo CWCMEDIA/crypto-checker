@@ -46,7 +46,7 @@ export default function TokenInput({ onTokenAdded, userName }: TokenInputProps) 
       } else {
         setError('Token not found. Please check the contract address.');
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred while fetching token data');
     } finally {
       setIsLoading(false);
