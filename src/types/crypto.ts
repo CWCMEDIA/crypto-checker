@@ -9,6 +9,10 @@ export interface TokenData {
   image: string;
   contract_address?: string;
   last_updated: string;
+  // DexScreener specific fields
+  dexscreener_pair_address?: string;
+  dexscreener_chain?: string;
+  dexscreener_url?: string;
 }
 
 export interface TrackedToken {

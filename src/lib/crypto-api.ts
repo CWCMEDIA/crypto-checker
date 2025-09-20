@@ -160,7 +160,11 @@ export class CryptoAPI {
         total_volume: bestPair.volume?.h24 ? parseFloat(bestPair.volume.h24) : 0,
         image: bestPair.baseToken.image || '/placeholder-coin.svg',
         contract_address: contractAddress,
-        last_updated: new Date().toISOString()
+        last_updated: new Date().toISOString(),
+        // Add DexScreener specific data
+        dexscreener_pair_address: bestPair.pairAddress,
+        dexscreener_chain: bestPair.chainId,
+        dexscreener_url: `https://dexscreener.com/${bestPair.chainId}/${bestPair.pairAddress}`
       };
 
       // Cache the result

@@ -6,6 +6,7 @@ import { CryptoAPI } from '@/lib/crypto-api';
 import { TokenStorage } from '@/lib/storage';
 import { supabase } from '@/lib/supabase';
 import TokenCard from './TokenCard';
+import TokenDetailModal from './TokenDetailModal';
 import { RefreshCw, AlertCircle } from 'lucide-react';
 
 export default function TokenDashboard() {
@@ -13,6 +14,8 @@ export default function TokenDashboard() {
   const [tokenData, setTokenData] = useState<TokenData[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [selectedToken, setSelectedToken] = useState<TokenData | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const loadTrackedTokens = async () => {
     const tokens = await TokenStorage.getTrackedTokens();
@@ -52,6 +55,16 @@ export default function TokenDashboard() {
 
   const handleRefresh = () => {
     fetchTokenData();
+  };
+
+  const handleTokenClick = (token: TokenData) => {
+    setSelectedToken(token);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setSelectedToken(null);
   };
 
   useEffect(() => {
@@ -160,12 +173,20 @@ export default function TokenDashboard() {
                 key={token.id}
                 token={token}
                 onRemove={() => handleTokenRemoved(token.contract_address!)}
+                onTokenClick={handleTokenClick}
                 addedBy={trackedToken?.addedBy}
               />
             );
           })}
         </div>
       )}
+
+      {/* Token Detail Modal */}
+      <TokenDetailModal
+        token={selectedToken}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+      />
     </div>
   );
 }

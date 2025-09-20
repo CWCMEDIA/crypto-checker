@@ -6,10 +6,11 @@ import { TrendingUp, TrendingDown, BarChart3, Volume2, Trash2 } from 'lucide-rea
 interface TokenCardProps {
   token: TokenData;
   onRemove: () => void;
+  onTokenClick?: (token: TokenData) => void;
   addedBy?: string;
 }
 
-export default function TokenCard({ token, onRemove, addedBy }: TokenCardProps) {
+export default function TokenCard({ token, onRemove, onTokenClick, addedBy }: TokenCardProps) {
   const formatPrice = (price: number) => {
     if (price < 0.01) return `$${price.toFixed(6)}`;
     if (price < 1) return `$${price.toFixed(4)}`;
@@ -34,7 +35,10 @@ export default function TokenCard({ token, onRemove, addedBy }: TokenCardProps) 
   const isPositive = token.price_change_percentage_24h >= 0;
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200">
+    <div 
+      className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow duration-200 cursor-pointer"
+      onClick={() => onTokenClick?.(token)}
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="flex items-center space-x-3">
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -56,7 +60,10 @@ export default function TokenCard({ token, onRemove, addedBy }: TokenCardProps) 
           </div>
         </div>
         <button
-          onClick={onRemove}
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemove();
+          }}
           className="text-gray-400 hover:text-red-500 transition-colors duration-200 p-1"
           title="Remove token"
         >
