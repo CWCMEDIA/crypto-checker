@@ -73,4 +73,4 @@ export default function Home() {
     </div>
   );
 }
-// Trigger deployment
+// Trigger deployment - Chart functionality added
